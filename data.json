@@ -35,23 +35,6 @@
     "done": false
   },
   {
-    "id": 3,
-    "title": "Linux iptables & nftables Firewall Guide",
-    "url": "https://wiki.nftables.org/",
-    "type": "Lab",
-    "topic": "Linux & Firewalls",
-    "notes": "Learn chains, tables, NAT rules, and stateful packet filtering.",
-    "keywords": [
-      "firewall",
-      "linux",
-      "nftables",
-      "iptables",
-      "nat",
-      "security"
-    ],
-    "done": false
-  },
-  {
     "id": 4,
     "title": "Algo Lab",
     "url": "https://byte-sized-algorithms.vercel.app/#/divide-and-conquer/1",
