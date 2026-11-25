@@ -17,24 +17,6 @@
     "done": false
   },
   {
-    "id": 2,
-    "title": "Jeremy's IT Lab - Free CCNA 200-301 Course",
-    "url": "https://www.youtube.com/@JeremysITLab",
-    "type": "Certification",
-    "topic": "Routing & Switching",
-    "notes": "Complete playlist with Packet Tracer labs and Anki flashcards.",
-    "keywords": [
-      "ccna",
-      "cisco",
-      "subnetting",
-      "vlan",
-      "ospf",
-      "switching",
-      "routing"
-    ],
-    "done": false
-  },
-  {
     "id": 4,
     "title": "Algo Lab",
     "url": "https://byte-sized-algorithms.vercel.app/#/divide-and-conquer/1",
