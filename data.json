@@ -50,5 +50,19 @@
       "security"
     ],
     "done": false
+  },
+  {
+    "id": 4,
+    "title": "Algo Lab",
+    "url": "https://byte-sized-algorithms.vercel.app/#/divide-and-conquer/1",
+    "type": "Tool",
+    "topic": "computer science",
+    "notes": "",
+    "keywords": [
+      "computer",
+      "science",
+      "computer science"
+    ],
+    "done": false
   }
 ]
