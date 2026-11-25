@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Networking Vault</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #192028;
+      --border: #2a3441;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #39bae6;
+      --accent-hover: #5ccfe6;
+      --tag-bg: #222c38;
+      --done: #3fb950;
+      --danger: #f85149;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem 1rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .title-wrap { display: flex; align-items: center; gap: 0.75rem; }
+    h1 { font-size: 1.5rem; font-weight: 700; }
+    #syncStatus {
+      font-size: 0.75rem;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0.2rem 0.55rem;
+      border-radius: 999px;
+    }
+    #syncStatus.ok { color: var(--done); border-color: #238636; }
+    #syncStatus.saving { color: #f0b429; border-color: #f0b429; }
+    #syncStatus.err { color: var(--danger); border-color: var(--danger); }
+    .actions { display: flex; gap: 0.5rem; }
+    button {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 0.5rem 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    button:hover { border-color: var(--accent); }
+    button.primary {
+      background: var(--accent);
+      color: #0b0e14;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+    button.primary:hover { background: var(--accent-hover); }
+    #search {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      font-size: 1rem;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      margin-bottom: 1rem;
+    }
+    #search:focus { border-color: var(--accent); }
+    .controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .filters { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+    .filter-btn {
+      font-size: 0.8rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+    }
+    .filter-btn.active {
+      background: var(--accent);
+      color: #0b0e14;
+      border-color: var(--accent);
+      font-weight: 600;
+    }
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 1rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      transition: border-color 0.15s, opacity 0.15s;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card.is-done { opacity: 0.55; border-color: #1f2a33; }
+    .card.is-done:hover { opacity: 0.9; }
+    .card-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+    }
+    .tick {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      accent-color: var(--done);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .card-title-area { flex: 1; min-width: 0; }
+    .card a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      word-break: break-word;
+    }
+    .card.is-done a { text-decoration: line-through; color: var(--muted); }
+    .card a:hover { text-decoration: underline; }
+    .meta {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin-top: 0.3rem;
+    }
+    .badge {
+      font-size: 0.72rem;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 0.12rem 0.45rem;
+      border-radius: 4px;
+    }
+    .notes { font-size: 0.86rem; color: var(--muted); line-height: 1.45; }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.35rem;
+    }
+    .tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .tag {
+      font-size: 0.73rem;
+      background: var(--tag-bg);
+      color: #b8c4d0;
+      padding: 0.18rem 0.48rem;
+      border-radius: 4px;
+    }
+    .del-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 0.78rem;
+      padding: 0.15rem 0.35rem;
+      opacity: 0.5;
+    }
+    .del-btn:hover { color: var(--danger); opacity: 1; border: none; }
+    .empty { color: var(--muted); grid-column: 1 / -1; text-align: center; padding: 2rem; }
+    dialog {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      width: min(460px, 92vw);
+      margin: auto;
+    }
+    dialog::backdrop { background: rgba(0, 0, 0, 0.7); }
+    dialog h2 { font-size: 1.15rem; margin-bottom: 1rem; }
+    form { display: flex; flex-direction: column; gap: 0.75rem; }
+    label { font-size: 0.82rem; color: var(--muted); display: flex; flex-direction: column; gap: 0.3rem; }
+    input, textarea, select {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.55rem 0.7rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
+    .hint { font-size: 0.76rem; color: var(--muted); line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-wrap">
+      <h1>Networking Vault</h1>
+      <span id="syncStatus">Loading...</span>
+    </div>
+    <div class="actions">
+      <button id="settingsBtn" title="Configure GitHub Sync">Sync Settings</button>
+      <button id="addBtn" class="primary">+ Add Material</button>
+    </div>
+  </header>
+
+  <input id="search" type="search" placeholder="Search topic, tool, or keyword (e.g., wireshark, vlan, ccna)...  [Press /]" autofocus />
+
+  <div class="controls">
+    <div id="filters" class="filters"></div>
+    <label class="toggle-wrap">
+      <input type="checkbox" id="hideDone" />
+      Hide completed
+    </label>
+  </div>
+
+  <main id="results" class="grid"></main>
+
+  <!-- Add Material Modal -->
+  <dialog id="addModal">
+    <h2>Add Study Material</h2>
+    <form id="addForm">
+      <label>Title <input name="title" required placeholder="e.g., Wireshark Display Filters Guide" /></label>
+      <label>URL <input name="url" type="url" required placeholder="https://..." /></label>
+      <label>Type
+        <select name="type">
+          <option value="Video">Video</option>
+          <option value="Tool">Tool</option>
+          <option value="Certification">Certification</option>
+          <option value="Lab">Lab</option>
+          <option value="Post">Post</option>
+        </select>
+      </label>
+      <label>Topic <input name="topic" required placeholder="e.g., Packet Analysis, Routing & Switching, Linux" /></label>
+      <label>Notes <textarea name="notes" rows="2" placeholder="What to focus on when studying this..."></textarea></label>
+      <label>Keywords (comma-separated)
+        <input name="keywords" required placeholder="wireshark, pcap, tcp, filters" />
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="close-modal">Cancel</button>
+        <button type="submit" class="primary">Save to Vault</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- GitHub Sync Settings Modal -->
+  <dialog id="settingsModal">
+    <h2>GitHub Sync Settings</h2>
+    <form id="settingsForm">
+      <p class="hint">Stored locally in this browser only. Needed once per device to add, tick, or delete items.</p>
+      <label>GitHub Username <input name="owner" required placeholder="your-github-username" /></label>
+      <label>Repository Name <input name="repo" required placeholder="networking-vault" /></label>
+      <label>Branch <input name="branch" required value="main" /></label>
+      <label>Fine-Grained Token <input name="token" type="password" required placeholder="github_pat_..." /></label>
+      <div class="modal-actions">
+        <button type="button" class="close-modal">Cancel</button>
+        <button type="submit" class="primary">Save Settings</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/minisearch@7.1.1/dist/umd/index.min.js"></script>
+  <script>
+    const STORAGE_KEY = "netvault_gh_config";
+    let items = [];
+    let currentSha = null;
+    let activeType = "All";
+    let miniSearch = null;
+
+    const searchInput = document.getElementById("search");
+    const filtersEl = document.getElementById("filters");
+    const hideDoneEl = document.getElementById("hideDone");
+    const resultsEl = document.getElementById("results");
+    const syncStatusEl = document.getElementById("syncStatus");
+    const addModal = document.getElementById("addModal");
+    const addForm = document.getElementById("addForm");
+    const settingsModal = document.getElementById("settingsModal");
+    const settingsForm = document.getElementById("settingsForm");
+
+    function getConfig() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; }
+      catch { return null; }
+    }
+
+    function setStatus(text, cls = "") {
+      syncStatusEl.textContent = text;
+      syncStatusEl.className = cls;
+    }
+
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = "";
+      bytes.forEach(b => bin += String.fromCharCode(b));
+      return btoa(bin);
+    }
+
+    function base64ToUtf8(b64) {
+      const bin = atob(b64.replace(/\s/g, ""));
+      const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "").replace(/[&<>"']/g, m => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+    }
+
+    function buildIndex() {
+      if (typeof MiniSearch === "undefined") return;
+      miniSearch = new MiniSearch({
+        fields: ["title", "topic", "type", "notes", "keywords"],
+        storeFields: ["id"],
+        extractField: (doc, field) => Array.isArray(doc[field]) ? doc[field].join(" ") : (doc[field] || "")
+      });
+      miniSearch.addAll(items);
+    }
+
+    async function loadData() {
+      const cfg = getConfig();
+      setStatus("Loading...", "saving");
+
+      if (cfg && cfg.owner && cfg.repo && cfg.token) {
+        try {
+          const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/data.json?ref=${cfg.branch || "main"}`;
+          const res = await fetch(url, {
+            headers: {
+              Authorization: `Bearer ${cfg.token}`,
+              Accept: "application/vnd.github+json"
+            },
+            cache: "no-store"
+          });
+          if (!res.ok) throw new Error(`GitHub ${res.status}`);
+          const data = await res.json();
+          currentSha = data.sha;
+          items = JSON.parse(base64ToUtf8(data.content));
+          setStatus("Synced", "ok");
+        } catch (err) {
+          console.error(err);
+          setStatus("Sync error", "err");
+        }
+      } else {
+        try {
+          const res = await fetch("data.json", { cache: "no-store" });
+          if (!res.ok) throw new Error("Local fetch failed");
+          items = await res.json();
+          setStatus("Read-only (set token to edit)");
+        } catch {
+          setStatus("Configure Sync Settings", "err");
+        }
+      }
+
+      buildIndex();
+      renderFilters();
+      renderResults();
+    }
+
+    async function saveData(commitMsg) {
+      const cfg = getConfig();
+      if (!cfg || !cfg.token) {
+        alert("Please set up your GitHub Sync Settings first to save changes.");
+        openSettings();
+        return false;
+      }
+
+      setStatus("Saving...", "saving");
+      try {
+        const url = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/data.json`;
+        const body = {
+          message: commitMsg,
+          content: utf8ToBase64(JSON.stringify(items, null, 2) + "\n"),
+          branch: cfg.branch || "main"
+        };
+        if (currentSha) body.sha = currentSha;
+
+        const res = await fetch(url, {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${cfg.token}`,
+            Accept: "application/vnd.github+json",
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (res.status === 409) {
+          setStatus("Conflict — refresh page", "err");
+          alert("This list was updated on another device. Refresh the page to get the latest version.");
+          return false;
+        }
+        if (!res.ok) throw new Error(`GitHub ${res.status}`);
+
+        const data = await res.json();
+        currentSha = data.content.sha;
+        setStatus("Synced", "ok");
+        return true;
+      } catch (err) {
+        console.error(err);
+        setStatus("Save failed", "err");
+        return false;
+      }
+    }
+
+    function renderFilters() {
+      const types = ["All", ...new Set(items.map(i => i.type).sort())];
+      filtersEl.innerHTML = types.map(t =>
+        `<button class="filter-btn ${t === activeType ? "active" : ""}" data-type="${escapeHtml(t)}">${escapeHtml(t)}</button>`
+      ).join("");
+    }
+
+    function getMatches(query) {
+      let list = [...items];
+      const q = query.trim();
+
+      if (q) {
+        if (miniSearch) {
+          let hits = miniSearch.search(q, {
+            boost: { keywords: 3, title: 2, topic: 2, notes: 1.5 },
+            fuzzy: 0.3,
+            prefix: true,
+            combineWith: "AND"
+          });
+          if (hits.length === 0) {
+            hits = miniSearch.search(q, {
+              boost: { keywords: 3, title: 2, topic: 2, notes: 1.5 },
+              fuzzy: 0.3,
+              prefix: true,
+              combineWith: "OR"
+            });
+          }
+          const byId = new Map(items.map(i => [i.id, i]));
+          list = hits.map(h => byId.get(h.id)).filter(Boolean);
+        } else {
+          const words = q.toLowerCase().split(/\s+/);
+          list = items.filter(i => {
+            const hay = `${i.title} ${i.topic} ${i.type} ${i.notes} ${i.keywords.join(" ")}`.toLowerCase();
+            return words.every(w => hay.includes(w));
+          });
+        }
+      } else {
+        // Default order: newest first
+        list.sort((a, b) => b.id - a.id);
+      }
+
+      if (activeType !== "All") {
+        list = list.filter(i => i.type === activeType);
+      }
+      if (hideDoneEl.checked) {
+        list = list.filter(i => !i.done);
+      }
+
+      // Always send ticked cards to the bottom while preserving relative order
+      list.sort((a, b) => Number(Boolean(a.done)) - Number(Boolean(b.done)));
+      return list;
+    }
+
+    function renderResults() {
+      const matches = getMatches(searchInput.value);
+      if (matches.length === 0) {
+        resultsEl.innerHTML = `<div class="empty">No matching study material found.</div>`;
+        return;
+      }
+      resultsEl.innerHTML = matches.map(item => `
+        <article class="card ${item.done ? "is-done" : ""}" data-id="${item.id}">
+          <div class="card-top">
+            <input type="checkbox" class="tick" ${item.done ? "checked" : ""} title="Mark as completed" />
+            <div class="card-title-area">
+              <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.title)}</a>
+              <div class="meta">
+                <span class="badge">${escapeHtml(item.type)}</span>
+                <span class="badge">${escapeHtml(item.topic)}</span>
+              </div>
+            </div>
+          </div>
+          ${item.notes ? `<p class="notes">${escapeHtml(item.notes)}</p>` : ""}
+          <div class="card-footer">
+            <div class="tags">${(item.keywords || []).map(k => `<span class="tag">${escapeHtml(k)}</span>`).join("")}</div>
+            <button class="del-btn" title="Delete item">Delete</button>
+          </div>
+        </article>
+      `).join("");
+    }
+
+    function openSettings() {
+      const cfg = getConfig() || {};
+      settingsForm.owner.value = cfg.owner || "";
+      settingsForm.repo.value = cfg.repo || "";
+      settingsForm.branch.value = cfg.branch || "main";
+      settingsForm.token.value = cfg.token || "";
+      settingsModal.showModal();
+    }
+
+    // Event Listeners
+    searchInput.addEventListener("input", renderResults);
+    hideDoneEl.addEventListener("change", renderResults);
+
+    filtersEl.addEventListener("click", e => {
+      if (!e.target.matches(".filter-btn")) return;
+      activeType = e.target.dataset.type;
+      renderFilters();
+      renderResults();
+    });
+
+    resultsEl.addEventListener("change", async e => {
+      if (!e.target.matches(".tick")) return;
+      const card = e.target.closest(".card");
+      const id = Number(card.dataset.id);
+      const item = items.find(i => i.id === id);
+      if (!item) return;
+
+      item.done = e.target.checked;
+      renderResults();
+      await saveData(`${item.done ? "Complete" : "Reopen"}: ${item.title}`);
+    });
+
+    resultsEl.addEventListener("click", async e => {
+      if (!e.target.matches(".del-btn")) return;
+      const card = e.target.closest(".card");
+      const id = Number(card.dataset.id);
+      const item = items.find(i => i.id === id);
+      if (!item || !confirm(`Remove "${item.title}" from your vault?`)) return;
+
+      items = items.filter(i => i.id !== id);
+      buildIndex();
+      renderFilters();
+      renderResults();
+      await saveData(`Remove: ${item.title}`);
+    });
+
+    document.getElementById("addBtn").addEventListener("click", () => addModal.showModal());
+    document.getElementById("settingsBtn").addEventListener("click", openSettings);
+    document.querySelectorAll(".close-modal").forEach(btn =>
+      btn.addEventListener("click", () => btn.closest("dialog").close())
+    );
+
+    addForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      const fd = new FormData(addForm);
+      const nextId = items.length ? Math.max(...items.map(i => i.id)) + 1 : 1;
+      const newItem = {
+        id: nextId,
+        title: fd.get("title").trim(),
+        url: fd.get("url").trim(),
+        type: fd.get("type"),
+        topic: fd.get("topic").trim(),
+        notes: fd.get("notes").trim(),
+        keywords: fd.get("keywords").split(",").map(k => k.trim()).filter(Boolean),
+        done: false
+      };
+      items.push(newItem);
+      buildIndex();
+      renderFilters();
+      renderResults();
+      addForm.reset();
+      addModal.close();
+      await saveData(`Add: ${newItem.title}`);
+    });
+
+    settingsForm.addEventListener("submit", async e => {
+      e.preventDefault();
+      const fd = new FormData(settingsForm);
+      const cfg = {
+        owner: fd.get("owner").trim(),
+        repo: fd.get("repo").trim(),
+        branch: fd.get("branch").trim() || "main",
+        token: fd.get("token").trim()
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
+      settingsModal.close();
+      await loadData();
+    });
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "/" && document.activeElement !== searchInput && !addModal.open && !settingsModal.open) {
+        e.preventDefault();
+        searchInput.focus();
+      }
+    });
+
+    loadData();
+  </script>
+</body>
+</html>

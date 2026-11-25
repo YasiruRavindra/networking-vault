@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "title": "Wireshark Packet Analysis Basics",
+    "url": "https://www.wireshark.org/docs/",
+    "type": "Tool",
+    "topic": "Packet Analysis",
+    "notes": "Practice display filters (tcp.port, http, dns) and inspect a TCP 3-way handshake.",
+    "keywords": ["wireshark", "pcap", "sniffing", "tcp", "traffic", "filters"],
+    "done": false
+  },
+  {
+    "id": 2,
+    "title": "Jeremy's IT Lab - Free CCNA 200-301 Course",
+    "url": "https://www.youtube.com/@JeremysITLab",
+    "type": "Certification",
+    "topic": "Routing & Switching",
+    "notes": "Complete playlist with Packet Tracer labs and Anki flashcards.",
+    "keywords": ["ccna", "cisco", "subnetting", "vlan", "ospf", "switching", "routing"],
+    "done": false
+  },
+  {
+    "id": 3,
+    "title": "Linux iptables & nftables Firewall Guide",
+    "url": "https://wiki.nftables.org/",
+    "type": "Lab",
+    "topic": "Linux & Firewalls",
+    "notes": "Learn chains, tables, NAT rules, and stateful packet filtering.",
+    "keywords": ["firewall", "linux", "nftables", "iptables", "nat", "security"],
+    "done": false
+  }
+]
